@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Instantiate the EditText object for the IP Address
         computerIPAddress = (EditText)findViewById(R.id.computerIP);
+        computerIPAddress.setText(sharedPrefs.getString(Constants.TOGGLE_BUTTON.IP, ""));
     }
 
     /**
@@ -51,13 +53,16 @@ public class MainActivity extends AppCompatActivity {
     public void onToggleClicked(View view) {
         boolean enabled = ((ToggleButton) view).isChecked();
         if (enabled) {
+            String ipAddress =  computerIPAddress.getText().toString();
+
             // Update the shared prefs
             editor.putBoolean(Constants.TOGGLE_BUTTON.STATE, true);
+            editor.putString(Constants.TOGGLE_BUTTON.IP, ipAddress);
             editor.commit();
 
             Intent startIntent = new Intent(MainActivity.this, ComputerSMSService.class);
             startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
-            String ipAddress =  computerIPAddress.getText().toString();
+
             startIntent.putExtra("ip", ipAddress);
             startService(startIntent);
 
