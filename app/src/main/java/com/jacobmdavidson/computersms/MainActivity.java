@@ -1,6 +1,7 @@
 package com.jacobmdavidson.computersms;
 
 import android.content.ComponentName;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ToggleButton;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,11 +23,9 @@ public class MainActivity extends AppCompatActivity {
     // Shared preferences editor
     private SharedPreferences.Editor editor;
 
-    // Package Manager used to register/deregister the MessageReceiver
-    private PackageManager pm;
+    // Computer IP Text
+    private EditText computerIPAddress;
 
-    // Component to register/deregister
-    private ComponentName component;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,40 +38,38 @@ public class MainActivity extends AppCompatActivity {
 
         // Instantiate and Set the toggle button according to the preferences
         toggle = (ToggleButton) findViewById(R.id.toggleButton);
-        toggle.setChecked(sharedPrefs.getBoolean("ToggleButtonState", false));
+        toggle.setChecked(sharedPrefs.getBoolean(Constants.TOGGLE_BUTTON.STATE, false));
 
-        // get the package manager, and instantiate the component name
-        pm = this.getPackageManager();
-        component = new ComponentName(this, MessageReceiver.class);
+        // Instantiate the EditText object for the IP Address
+        computerIPAddress = (EditText)findViewById(R.id.computerIP);
     }
 
     /**
-     * Update the shared prefs and enable/disable the MessageReceiver when the
-     * toggle button is pressed.
+     * Update the shared prefs and start/stop the service when toggle button is pressed.
      * @param view the view from which the click is received
      */
     public void onToggleClicked(View view) {
         boolean enabled = ((ToggleButton) view).isChecked();
         if (enabled) {
-
             // Update the shared prefs
-            editor.putBoolean("ToggleButtonState", true);
+            editor.putBoolean(Constants.TOGGLE_BUTTON.STATE, true);
             editor.commit();
 
-            // Enable the receiver
-            pm.setComponentEnabledSetting(component,
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                    PackageManager.DONT_KILL_APP);
+            Intent startIntent = new Intent(MainActivity.this, ComputerSMSService.class);
+            startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
+            String ipAddress =  computerIPAddress.getText().toString();
+            startIntent.putExtra("ip", ipAddress);
+            startService(startIntent);
+
         } else {
 
             // Update the shared prefs
-            editor.putBoolean("ToggleButtonState", false);
+            editor.putBoolean(Constants.TOGGLE_BUTTON.STATE, false);
             editor.commit();
 
-            // Disable the receiver
-            pm.setComponentEnabledSetting(component,
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP);
+            Intent stopIntent = new Intent(MainActivity.this, ComputerSMSService.class);
+            stopIntent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
+            startService(stopIntent);
         }
     }
 }

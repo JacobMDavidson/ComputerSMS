@@ -20,13 +20,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name="com.jacobmdavidson.computersms.MessageReceiver" android:enabled="false">
-            <intent-filter >
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <action android:name="com.jacobmdavidson.computersms.COMPUTER_MESSAGE" />
-            </intent-filter>
-        </receiver>
         <service android:name="com.jacobmdavidson.computersms.ComputerSMSService" />
     </application>
 

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ComputerSMS</string>
+    <string name="ipLabel">IP Address</string>
 </resources>
