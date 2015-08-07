@@ -14,6 +14,11 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.util.Xml;
+
+import org.xmlpull.v1.XmlSerializer;
+
+import java.io.StringWriter;
 
 /**
  * Created by jacobdavidson
@@ -64,18 +69,45 @@ public class ComputerSMSService extends Service{
             // Stop the foreground service
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_CALL_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Ringing");
-            String incomingCall = "Incoming call from : " + intent.getStringExtra("number");
-            Log.i(Constants.DEBUGGING.LOG_TAG, incomingCall);
-            mTcpClient.sendMessage(incomingCall);
+            XmlSerializer xs = Xml.newSerializer();
+            StringWriter sw = new StringWriter();
+            try {
+                xs.setOutput(sw);
+                xs.startDocument("UTF-8", true);
+                xs.startTag(null, "phoneCall");
+                xs.startTag(null, "caller");
+                xs.text(intent.getStringExtra("number"));
+                xs.endTag(null, "caller");
+                xs.endTag(null, "phoneCall");
+                xs.endDocument();
+            } catch(Exception e) {
+                Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
+            }
+            Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+            mTcpClient.sendMessage(sw.toString());
 
 
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_SMS_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "SMS Received");
-            String incomingMessage = "SMS from ";
-            incomingMessage += intent.getStringExtra("sender") + ": ";
-            incomingMessage += intent.getStringExtra("body");
-            Log.i(Constants.DEBUGGING.LOG_TAG, incomingMessage);
-            mTcpClient.sendMessage(incomingMessage);
+            XmlSerializer xs = Xml.newSerializer();
+            StringWriter sw = new StringWriter();
+            try {
+                xs.setOutput(sw);
+                xs.startDocument("UTF-8", true);
+                xs.startTag(null, "smsMessage");
+                xs.startTag(null, "number");
+                xs.text(intent.getStringExtra("sender"));
+                xs.endTag(null, "number");
+                xs.startTag(null, "body");
+                xs.text(intent.getStringExtra("body"));
+                xs.endTag(null, "body");
+                xs.endTag(null, "smsMessage");
+                xs.endDocument();
+            } catch(Exception e) {
+                Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
+            }
+            Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+            mTcpClient.sendMessage(sw.toString());
 
         } else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Stop Called");
