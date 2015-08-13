@@ -17,7 +17,7 @@ public class TCPClient {
 
     private String serverMessage;
     private String serverIP;
-    public static final int SERVERPORT = 4444;
+    private int port;
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
 
@@ -27,9 +27,10 @@ public class TCPClient {
     /**
      *  Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TCPClient(OnMessageReceived listener, String computerIP) {
+    public TCPClient(OnMessageReceived listener, String computerIP, int port) {
         mMessageListener = listener;
         serverIP = computerIP;
+        this.port = port;
     }
     /**
      * Sends the message entered by client to the server
@@ -57,7 +58,7 @@ public class TCPClient {
             Log.i(Constants.DEBUGGING.LOG_TAG, "C: Connecting...");
 
             //create a socket to make the connection with the server
-            Socket socket = new Socket(serverAddr, SERVERPORT);
+            Socket socket = new Socket(serverAddr, port);
 
             try {
 

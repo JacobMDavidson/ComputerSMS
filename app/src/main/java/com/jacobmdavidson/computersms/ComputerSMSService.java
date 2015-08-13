@@ -29,6 +29,7 @@ public class ComputerSMSService extends Service{
     private ComputerSMSReceiver receiver;
     private TCPClient mTcpClient;
     private String ip = "";
+    private int port;
 
 
     @Override
@@ -52,7 +53,9 @@ public class ComputerSMSService extends Service{
         // Start the foreground service
         if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Start Called");
+
             ip = intent.getStringExtra("ip");
+            port = intent.getIntExtra("port", 0);
             Intent notificationIntent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
             Notification notification =
@@ -149,7 +152,7 @@ public class ComputerSMSService extends Service{
                     //this method calls the onProgressUpdate
                     publishProgress(message);
                 }
-            }, ip);
+            }, ip, port);
             mTcpClient.run();
 
             return null;
