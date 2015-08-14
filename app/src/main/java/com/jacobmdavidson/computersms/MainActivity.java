@@ -1,12 +1,17 @@
 package com.jacobmdavidson.computersms;
 
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+
+import java.lang.ref.WeakReference;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -30,30 +35,31 @@ public class MainActivity extends AppCompatActivity {
     // mDNS service
     private JmDNS jmdns;
 
+    private JmDNSClient jmDNSClient;
+
     // Service type string
     public final static String SERVICE_TYPE = "_http._tcp.local.";
 
-    private ServiceListener jmdnsServiceListener;
 
-    private JmDNSClient jmdnsClient;
-
-    //private Handler handler = new Handler();
-
+    private Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        handler = new Handler(Looper.getMainLooper());
 
         // Instantiate and Set the toggle button according to the preferences
         toggle = (ToggleButton) findViewById(R.id.toggleButton);
         toggle.setChecked(false);
+        toggle.setEnabled(false);
 
         // Instantiate the EditText object for the IP Address
         serviceDescription = (TextView)findViewById(R.id.textView1);
 
-
+        jmDNSClient = new JmDNSClient();
+        jmDNSClient.start();
 
 
     }
@@ -65,23 +71,14 @@ public class MainActivity extends AppCompatActivity {
     public void onToggleClicked(View view) {
         boolean enabled = ((ToggleButton) view).isChecked();
         if (enabled) {
-            serviceDescription.setText("Searching for Service...");
 
-            // Search for the service
-            jmdnsClient = new JmDNSClient();
-            jmdnsClient.start();
-
-            // Wait until a service is found
-            while(ipAddress == null || portNumber == 0) {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "Watining for Service Discovery");
-            }
-
-            serviceDescription.setText("Service Started!");
             Intent startIntent = new Intent(MainActivity.this, ComputerSMSService.class);
             startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
             startIntent.putExtra("ip", ipAddress);
             startIntent.putExtra("port", portNumber);
             startService(startIntent);
+            serviceDescription.setText("Service Started!");
+
 
         } else {
             serviceDescription.setText("");
@@ -100,8 +97,10 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             super.run();
             try {
+                Log.i(Constants.DEBUGGING.LOG_TAG, "caatfytfuyt");
                 jmdns = JmDNS.create();
                 jmdns.addServiceListener(SERVICE_TYPE, new SampleListener());
+
 
 
             } catch (Exception e) {
@@ -117,15 +116,9 @@ public class MainActivity extends AppCompatActivity {
 
                 ServiceInfo info = jmdns.getServiceInfo(SERVICE_TYPE, event.getName());
                 if(info.getName().equals("ComputerSMS")) {
+
                     Log.i(Constants.DEBUGGING.LOG_TAG, "updating");
-                    portNumber = info.getPort();
-                    ipAddress = info.getHostAddresses()[0];
-                    serviceDescription.setText(ipAddress);
-                    try {
-                        jmdns.close();
-                    } catch (Exception e) {
-                        Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
-                    }
+                    startService(info);
 
 
                 }
@@ -139,19 +132,35 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void serviceResolved(ServiceEvent event) {
-                if(event.getInfo().getName().equals("ComputerSMS")) {
+                ServiceInfo info = event.getInfo();
+                if(info.getName().equals("ComputerSMS")) {
+
                     Log.i(Constants.DEBUGGING.LOG_TAG, "Updating");
-                    portNumber = event.getInfo().getPort();
-                    ipAddress = event.getInfo().getHostAddresses()[0];
-                    serviceDescription.setText(ipAddress);
-                    try {
-                        jmdns.close();
-                    } catch (Exception e) {
-                        Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
-                    }
+                    startService(info);
+
 
                 }
             }
+
+            public void startService (ServiceInfo info) {
+                portNumber = info.getPort();
+                ipAddress = info.getHostAddresses()[0];
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        toggle.setEnabled(true);
+                    }
+                });
+                jmdns.removeServiceListener(SERVICE_TYPE, this);
+                try {
+                    jmdns.close();
+                } catch ( Exception e) {
+                    Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
+                }
+
+
+            }
+
         }
     }
 }
