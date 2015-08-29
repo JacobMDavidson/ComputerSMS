@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         jmDNSClient = new JmDNSClient();
         jmDNSClient.start();
 
-
     }
 
     /**
@@ -97,10 +96,12 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             super.run();
             try {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "caatfytfuyt");
+                Log.i(Constants.DEBUGGING.LOG_TAG, "creating JMDNS");
                 jmdns = JmDNS.create();
-                jmdns.addServiceListener(SERVICE_TYPE, new SampleListener());
 
+                Log.i(Constants.DEBUGGING.LOG_TAG, "Adding JMDNS service listener");
+                jmdns.addServiceListener(SERVICE_TYPE, new SampleListener());
+                Log.i(Constants.DEBUGGING.LOG_TAG, "jmDNS Service listener added");
 
 
             } catch (Exception e) {
@@ -114,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void serviceAdded(ServiceEvent event) {
 
+                Log.i(Constants.DEBUGGING.LOG_TAG, "serviceAdded");
                 ServiceInfo info = jmdns.getServiceInfo(SERVICE_TYPE, event.getName());
                 if(info.getName().equals("ComputerSMS")) {
 
@@ -132,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void serviceResolved(ServiceEvent event) {
+                Log.i(Constants.DEBUGGING.LOG_TAG, "serviceResolved");
                 ServiceInfo info = event.getInfo();
                 if(info.getName().equals("ComputerSMS")) {
 
@@ -143,12 +146,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void startService (ServiceInfo info) {
+                Log.i(Constants.DEBUGGING.LOG_TAG, "startService called");
                 portNumber = info.getPort();
                 ipAddress = info.getHostAddresses()[0];
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
                         toggle.setEnabled(true);
+                        serviceDescription.setText(ipAddress);
                     }
                 });
                 jmdns.removeServiceListener(SERVICE_TYPE, this);

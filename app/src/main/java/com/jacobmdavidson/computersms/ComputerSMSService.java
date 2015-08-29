@@ -30,6 +30,7 @@ public class ComputerSMSService extends Service{
     private TCPClient mTcpClient;
     private String ip = "";
     private int port;
+    private DiffieHellmanModule diffieHellmanModule;
 
 
     @Override
@@ -42,7 +43,7 @@ public class ComputerSMSService extends Service{
         filter.addAction(Constants.MESSAGE.CALL);
         receiver = new ComputerSMSReceiver();
         registerReceiver(receiver, filter);
-
+        diffieHellmanModule = new DiffieHellmanModule();
         Log.i(Constants.DEBUGGING.LOG_TAG, "Service Created");
     }
 
@@ -69,7 +70,10 @@ public class ComputerSMSService extends Service{
             // Connect to the server
             new ConnectToServer().execute("");
 
-            // Stop the foreground service
+
+
+
+            // Incoming call, build and send the xml message
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_CALL_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Ringing");
             XmlSerializer xs = Xml.newSerializer();
@@ -87,9 +91,10 @@ public class ComputerSMSService extends Service{
                 Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
             }
             Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+
             mTcpClient.sendMessage(sw.toString());
 
-
+            // Incoming text, build and send the xml message
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_SMS_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "SMS Received");
             XmlSerializer xs = Xml.newSerializer();
@@ -110,17 +115,16 @@ public class ComputerSMSService extends Service{
                 Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
             }
             Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+
             mTcpClient.sendMessage(sw.toString());
 
+            // Service disabled, stop the client
         } else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Stop Called");
             mTcpClient.stopClient();
             stopForeground(true);
             stopSelf();
         }
-
-        // Add sms received
-        // Add phone call received
 
         return START_STICKY;
     }
@@ -149,10 +153,17 @@ public class ComputerSMSService extends Service{
                 @Override
                 //here the messageReceived method is implemented
                 public void messageReceived(String message) {
+
+                    // If encypted connection, decrypt the message
+                    if( diffieHellmanModule.isConnected()) {
+                        message = diffieHellmanModule.decryptString(message);
+                    }
                     //this method calls the onProgressUpdate
                     publishProgress(message);
+
+
                 }
-            }, ip, port);
+            }, ip, port, diffieHellmanModule);
             mTcpClient.run();
 
             return null;

@@ -1,5 +1,7 @@
 package com.jacobmdavidson.computersms;
 
+
+import android.util.Base64;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -9,6 +11,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.security.KeyFactory;
+import java.security.spec.X509EncodedKeySpec;
 
 /**
  * Created by jacobdavidson on 8/6/15
@@ -20,6 +24,7 @@ public class TCPClient {
     private int port;
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
+    private DiffieHellmanModule diffieHellmanModule;
 
     PrintWriter out;
     BufferedReader in;
@@ -27,17 +32,24 @@ public class TCPClient {
     /**
      *  Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TCPClient(OnMessageReceived listener, String computerIP, int port) {
+    public TCPClient(OnMessageReceived listener, String computerIP, int port, DiffieHellmanModule diffieHellmanModule) {
         mMessageListener = listener;
         serverIP = computerIP;
         this.port = port;
+        this.diffieHellmanModule = diffieHellmanModule;
     }
     /**
      * Sends the message entered by client to the server
      * @param message text entered by client
      */
     public void sendMessage(String message){
+
         if (out != null && !out.checkError()) {
+
+            // If encryption connection has been made
+            if (diffieHellmanModule.isConnected()) {
+                message = diffieHellmanModule.encryptString(message);
+            }
             out.println(message);
             out.flush();
         }
@@ -55,7 +67,7 @@ public class TCPClient {
             //here you must put your computer's IP address.
             InetAddress serverAddr = InetAddress.getByName(serverIP);
 
-            Log.i(Constants.DEBUGGING.LOG_TAG, "C: Connecting...");
+            Log.i(Constants.DEBUGGING.LOG_TAG, "Connecting to Server...");
 
             //create a socket to make the connection with the server
             Socket socket = new Socket(serverAddr, port);
@@ -65,12 +77,32 @@ public class TCPClient {
                 //send the message to the server
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "C: Sent.");
-
-                Log.i(Constants.DEBUGGING.LOG_TAG, "C: Done.");
+                // Send the public Diffie Hellman key
+                String message = new String(Base64.encode(diffieHellmanModule.getPublicKey().getEncoded(), Base64.DEFAULT));
+                Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key: " + message);
+                sendMessage(message);
+                Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key Sent!");
 
                 //receive the message which the server sends back
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+                Log.i(Constants.DEBUGGING.LOG_TAG, "Waiting for DH Public Key from Server");
+                while (!diffieHellmanModule.isConnected()) {
+                    serverMessage = in.readLine();
+                    if (serverMessage != null) {
+                        // @ TODO look for specific xml message with key built in and extract it
+                        //attempt to calculate the AES key usig the DH key exchange
+                        byte[] data = Base64.decode(serverMessage, Base64.DEFAULT);
+                        Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key: " + new String(data));
+                        X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
+                        KeyFactory keyFactory = KeyFactory.getInstance("AES");
+                        diffieHellmanModule.generateSecretKey(keyFactory.generatePublic(spec), true);
+                        Log.i(Constants.DEBUGGING.LOG_TAG, "AES Key Generated");
+                    }
+                    serverMessage = null;
+                }
+
+                Log.i(Constants.DEBUGGING.LOG_TAG, "All Communication Now Encrypted!");
 
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
@@ -84,17 +116,16 @@ public class TCPClient {
 
                 }
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "S: Received Message: '" + serverMessage + "'");
 
             } catch (Exception e) {
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "S: Error", e);
+                Log.i(Constants.DEBUGGING.LOG_TAG, "Communication Error", e);
 
             }
 
         } catch (Exception e) {
 
-            Log.i(Constants.DEBUGGING.LOG_TAG, "C: Error", e);
+            Log.i(Constants.DEBUGGING.LOG_TAG, "Server connection error", e);
 
         }
 
