@@ -1,6 +1,9 @@
 package com.jacobmdavidson.computersms;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -12,6 +15,8 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import java.lang.ref.WeakReference;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -96,8 +101,14 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             super.run();
             try {
+                Log.i(Constants.DEBUGGING.LOG_TAG, "getting ip address");
+                WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+
+                // get the device ip address
+                final InetAddress deviceIpAddress = getDeviceIpAddress(wifi);
+
                 Log.i(Constants.DEBUGGING.LOG_TAG, "creating JMDNS");
-                jmdns = JmDNS.create();
+                jmdns = JmDNS.create(deviceIpAddress, "ComputerSMS");
 
                 Log.i(Constants.DEBUGGING.LOG_TAG, "Adding JMDNS service listener");
                 jmdns.addServiceListener(SERVICE_TYPE, new SampleListener());
@@ -159,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 jmdns.removeServiceListener(SERVICE_TYPE, this);
                 try {
                     jmdns.close();
+                    Log.i(Constants.DEBUGGING.LOG_TAG, "jmdns closed");
                 } catch ( Exception e) {
                     Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
                 }
@@ -167,5 +179,28 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    /**
+     * Gets the current Android device IP address or return 10.0.0.2 which is localhost on Android.
+     * <p>
+     * @return the InetAddress of this Android device
+     */
+    private InetAddress getDeviceIpAddress(WifiManager wifi) {
+        InetAddress result = null;
+        try {
+            // default to Android localhost
+            result = InetAddress.getByName("10.0.0.2");
+
+            // figure out our wifi address, otherwise bail
+            WifiInfo wifiinfo = wifi.getConnectionInfo();
+            int intaddr = wifiinfo.getIpAddress();
+            byte[] byteaddr = new byte[] { (byte) (intaddr & 0xff), (byte) (intaddr >> 8 & 0xff), (byte) (intaddr >> 16 & 0xff), (byte) (intaddr >> 24 & 0xff) };
+            result = InetAddress.getByAddress(byteaddr);
+        } catch (UnknownHostException ex) {
+            Log.w(Constants.DEBUGGING.LOG_TAG, String.format("getDeviceIpAddress Error: %s", ex.getMessage()));
+        }
+
+        return result;
     }
 }

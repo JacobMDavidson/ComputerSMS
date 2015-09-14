@@ -78,7 +78,7 @@ public class TCPClient {
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
 
                 // Send the public Diffie Hellman key
-                String message = new String(Base64.encode(diffieHellmanModule.getPublicKey().getEncoded(), Base64.DEFAULT));
+                String message = new String(Base64.encode(diffieHellmanModule.getPublicKey().getEncoded(), Base64.NO_WRAP));
                 Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key: " + message);
                 sendMessage(message);
                 Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key Sent!");
@@ -89,13 +89,14 @@ public class TCPClient {
                 Log.i(Constants.DEBUGGING.LOG_TAG, "Waiting for DH Public Key from Server");
                 while (!diffieHellmanModule.isConnected()) {
                     serverMessage = in.readLine();
+                    Log.i(Constants.DEBUGGING.LOG_TAG, serverMessage);
                     if (serverMessage != null) {
                         // @ TODO look for specific xml message with key built in and extract it
                         //attempt to calculate the AES key usig the DH key exchange
-                        byte[] data = Base64.decode(serverMessage, Base64.DEFAULT);
+                        byte[] data = Base64.decode(serverMessage, Base64.NO_WRAP);
                         Log.i(Constants.DEBUGGING.LOG_TAG, "Public Key: " + new String(data));
                         X509EncodedKeySpec spec = new X509EncodedKeySpec(data);
-                        KeyFactory keyFactory = KeyFactory.getInstance("AES");
+                        KeyFactory keyFactory = KeyFactory.getInstance("DH");
                         diffieHellmanModule.generateSecretKey(keyFactory.generatePublic(spec), true);
                         Log.i(Constants.DEBUGGING.LOG_TAG, "AES Key Generated");
                     }
