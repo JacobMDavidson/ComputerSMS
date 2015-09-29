@@ -42,13 +42,13 @@ public class DiffieHellmanModule {
     public DiffieHellmanModule() {
         // Init the KeyPairGenerator
         try {
-            Log.i(Constants.DEBUGGING.LOG_TAG, "Generating key pair");
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "Generating key pair");
 
 
             DHParameterSpec dhParameterSpec = new DHParameterSpec(skip1024Modulus, skip1024Base);
             keyPairGenerator = KeyPairGenerator.getInstance("DH");
             keyPairGenerator.initialize(dhParameterSpec);
-            Log.i(Constants.DEBUGGING.LOG_TAG, "Done - Generating key pair");
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "Done - Generating key pair");
         } catch (NoSuchAlgorithmException e) {
             Log.i(Constants.DEBUGGING.LOG_TAG, "Invalid Algorithm");
         } catch (InvalidAlgorithmParameterException e) {
@@ -59,14 +59,14 @@ public class DiffieHellmanModule {
         // Generate the Key Pairs
         KeyPair keyPair = keyPairGenerator.genKeyPair();
 
-        Log.i(Constants.DEBUGGING.LOG_TAG, "Keypair Generator instantiated");
+        //Log.i(Constants.DEBUGGING.LOG_TAG, "Keypair Generator instantiated");
 
         publicKey = keyPair.getPublic();
-        Log.i(Constants.DEBUGGING.LOG_TAG, "public key generated");
+        //Log.i(Constants.DEBUGGING.LOG_TAG, "public key generated");
 
         privateKey = keyPair.getPrivate();
 
-        Log.i(Constants.DEBUGGING.LOG_TAG, "private key generated");
+        //Log.i(Constants.DEBUGGING.LOG_TAG, "private key generated");
 
 
     }
@@ -99,7 +99,6 @@ public class DiffieHellmanModule {
 
     public String encryptString( String plainText ) {
 
-        // @ TODO should I really init Cipher each time??
         try {
             // Instantiate the cipher
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -127,7 +126,6 @@ public class DiffieHellmanModule {
     }
 
     public String decryptString( String cipherText ) {
-        // @ TODO should I really init Cipher each time??
         try {
             // Instantiate the cipher
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");

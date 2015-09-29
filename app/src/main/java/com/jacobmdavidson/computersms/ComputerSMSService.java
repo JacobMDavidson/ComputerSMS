@@ -3,21 +3,21 @@ package com.jacobmdavidson.computersms;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.telephony.TelephonyManager;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlSerializer;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 /**
@@ -44,7 +44,7 @@ public class ComputerSMSService extends Service{
         receiver = new ComputerSMSReceiver();
         registerReceiver(receiver, filter);
         diffieHellmanModule = new DiffieHellmanModule();
-        Log.i(Constants.DEBUGGING.LOG_TAG, "Service Created");
+        //Log.i(Constants.DEBUGGING.LOG_TAG, "Service Created");
     }
 
     @Override
@@ -53,7 +53,7 @@ public class ComputerSMSService extends Service{
 
         // Start the foreground service
         if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
-            Log.i(Constants.DEBUGGING.LOG_TAG, "Start Called");
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "Start Called");
 
             ip = intent.getStringExtra("ip");
             port = intent.getIntExtra("port", 0);
@@ -75,34 +75,43 @@ public class ComputerSMSService extends Service{
 
             // Incoming call, build and send the xml message
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_CALL_ACTION)) {
-            Log.i(Constants.DEBUGGING.LOG_TAG, "Ringing");
-            XmlSerializer xs = Xml.newSerializer();
-            StringWriter sw = new StringWriter();
-            try {
-                xs.setOutput(sw);
-                xs.startDocument("UTF-8", true);
-                xs.startTag(null, "phoneCall");
-                xs.startTag(null, "caller");
-                xs.text(intent.getStringExtra("number"));
-                xs.endTag(null, "caller");
-                xs.endTag(null, "phoneCall");
-                xs.endDocument();
-            } catch(Exception e) {
-                Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
-            }
-            Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
-
-            mTcpClient.sendMessage(sw.toString());
-
-            // Incoming text, build and send the xml message
-        } else if (intent.getAction().equals(Constants.ACTION.INCOMING_SMS_ACTION)) {
-            Log.i(Constants.DEBUGGING.LOG_TAG, "SMS Received");
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "Ringing");
             XmlSerializer xs = Xml.newSerializer();
             StringWriter sw = new StringWriter();
             try {
                 xs.setOutput(sw);
                 xs.startDocument("UTF-8", true);
                 xs.startTag(null, "smsMessage");
+                xs.startTag(null, "type");
+                xs.text("call");
+                xs.endTag(null, "type");
+                xs.startTag(null, "number");
+                xs.text(intent.getStringExtra("number"));
+                xs.endTag(null, "number");
+                xs.startTag(null, "body");
+                xs.text("Incoming phone call");
+                xs.endTag(null, "body");
+                xs.endTag(null, "smsMessage");
+                xs.endDocument();
+            } catch(Exception e) {
+                Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
+            }
+            //Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+
+            mTcpClient.sendMessage(sw.toString());
+
+            // Incoming text, build and send the xml message
+        } else if (intent.getAction().equals(Constants.ACTION.INCOMING_SMS_ACTION)) {
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "SMS Received");
+            XmlSerializer xs = Xml.newSerializer();
+            StringWriter sw = new StringWriter();
+            try {
+                xs.setOutput(sw);
+                xs.startDocument("UTF-8", true);
+                xs.startTag(null, "smsMessage");
+                xs.startTag(null, "type");
+                xs.text("sms");
+                xs.endTag(null, "type");
                 xs.startTag(null, "number");
                 xs.text(intent.getStringExtra("sender"));
                 xs.endTag(null, "number");
@@ -114,13 +123,13 @@ public class ComputerSMSService extends Service{
             } catch(Exception e) {
                 Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
             }
-            Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
+            //Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
 
             mTcpClient.sendMessage(sw.toString());
 
             // Service disabled, stop the client
         } else if (intent.getAction().equals(Constants.ACTION.STOPFOREGROUND_ACTION)) {
-            Log.i(Constants.DEBUGGING.LOG_TAG, "Stop Called");
+            //Log.i(Constants.DEBUGGING.LOG_TAG, "Stop Called");
             mTcpClient.stopClient();
             stopForeground(true);
             stopSelf();
@@ -133,7 +142,7 @@ public class ComputerSMSService extends Service{
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
-        Log.i(Constants.DEBUGGING.LOG_TAG, "Service Destroyed");
+        //Log.i(Constants.DEBUGGING.LOG_TAG, "Service Destroyed");
     }
 
     @Nullable
@@ -173,8 +182,18 @@ public class ComputerSMSService extends Service{
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
+            SMSMessage message;
+            try {
+                XMLPullParserHandler parser = new XMLPullParserHandler();
+                InputStream is = new ByteArrayInputStream(values[0].getBytes());
+                message = parser.parse(is);
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage(message.getNumber(), null, message.getBody(), null, null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            Log.i(Constants.DEBUGGING.LOG_TAG, values[0]);
+            //Log.i(Constants.DEBUGGING.LOG_TAG, values[0]);
         }
 
 

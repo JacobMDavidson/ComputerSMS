@@ -6,7 +6,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -61,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         toggle.setEnabled(false);
 
         // Instantiate the EditText object for the IP Address
-        serviceDescription = (TextView)findViewById(R.id.textView1);
+        serviceDescription = (TextView) findViewById(R.id.textView1);
 
         jmDNSClient = new JmDNSClient();
         jmDNSClient.start();
@@ -70,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Update the shared prefs and start/stop the service when toggle button is pressed.
+     *
      * @param view the view from which the click is received
      */
     public void onToggleClicked(View view) {
@@ -93,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private class JmDNSClient extends Thread {
 
 
@@ -101,18 +99,18 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             super.run();
             try {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "getting ip address");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "getting ip address");
                 WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
 
                 // get the device ip address
                 final InetAddress deviceIpAddress = getDeviceIpAddress(wifi);
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "creating JMDNS");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "creating JMDNS");
                 jmdns = JmDNS.create(deviceIpAddress, "ComputerSMS");
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "Adding JMDNS service listener");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "Adding JMDNS service listener");
                 jmdns.addServiceListener(SERVICE_TYPE, new SampleListener());
-                Log.i(Constants.DEBUGGING.LOG_TAG, "jmDNS Service listener added");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "jmDNS Service listener added");
 
 
             } catch (Exception e) {
@@ -126,11 +124,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void serviceAdded(ServiceEvent event) {
 
-                Log.i(Constants.DEBUGGING.LOG_TAG, "serviceAdded");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "serviceAdded");
                 ServiceInfo info = jmdns.getServiceInfo(SERVICE_TYPE, event.getName());
-                if(info.getName().equals("ComputerSMS")) {
+                if (info.getName().equals("ComputerSMS")) {
 
-                    Log.i(Constants.DEBUGGING.LOG_TAG, "updating");
+                    //Log.i(Constants.DEBUGGING.LOG_TAG, "updating");
                     startService(info);
 
 
@@ -140,24 +138,24 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void serviceRemoved(ServiceEvent event) {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "Service Removed");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "Service Removed");
             }
 
             @Override
             public void serviceResolved(ServiceEvent event) {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "serviceResolved");
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "serviceResolved");
                 ServiceInfo info = event.getInfo();
-                if(info.getName().equals("ComputerSMS")) {
+                if (info.getName().equals("ComputerSMS")) {
 
-                    Log.i(Constants.DEBUGGING.LOG_TAG, "Updating");
+                    //Log.i(Constants.DEBUGGING.LOG_TAG, "Updating");
                     startService(info);
 
 
                 }
             }
 
-            public void startService (ServiceInfo info) {
-                Log.i(Constants.DEBUGGING.LOG_TAG, "startService called");
+            public void startService(ServiceInfo info) {
+                //Log.i(Constants.DEBUGGING.LOG_TAG, "startService called");
                 portNumber = info.getPort();
                 ipAddress = info.getHostAddresses()[0];
                 handler.post(new Runnable() {
@@ -170,9 +168,9 @@ public class MainActivity extends AppCompatActivity {
                 jmdns.removeServiceListener(SERVICE_TYPE, this);
                 try {
                     jmdns.close();
-                    Log.i(Constants.DEBUGGING.LOG_TAG, "jmdns closed");
-                } catch ( Exception e) {
-                    Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
+                    //Log.i(Constants.DEBUGGING.LOG_TAG, "jmdns closed");
+                } catch (Exception e) {
+                    //Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
                 }
 
 
@@ -183,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Gets the current Android device IP address or return 10.0.0.2 which is localhost on Android.
-     * <p>
+     * <p/>
+     *
      * @return the InetAddress of this Android device
      */
     private InetAddress getDeviceIpAddress(WifiManager wifi) {
@@ -195,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
             // figure out our wifi address, otherwise bail
             WifiInfo wifiinfo = wifi.getConnectionInfo();
             int intaddr = wifiinfo.getIpAddress();
-            byte[] byteaddr = new byte[] { (byte) (intaddr & 0xff), (byte) (intaddr >> 8 & 0xff), (byte) (intaddr >> 16 & 0xff), (byte) (intaddr >> 24 & 0xff) };
+            byte[] byteaddr = new byte[]{(byte) (intaddr & 0xff), (byte) (intaddr >> 8 & 0xff), (byte) (intaddr >> 16 & 0xff), (byte) (intaddr >> 24 & 0xff)};
             result = InetAddress.getByAddress(byteaddr);
         } catch (UnknownHostException ex) {
             Log.w(Constants.DEBUGGING.LOG_TAG, String.format("getDeviceIpAddress Error: %s", ex.getMessage()));
