@@ -2,6 +2,7 @@ package com.jacobmdavidson.computersms;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
@@ -43,8 +44,10 @@ public class MainActivity extends AppCompatActivity {
     // Service type string
     public final static String SERVICE_TYPE = "_http._tcp.local.";
 
-
     private Handler handler;
+
+    private SharedPreferences.Editor editor;
+    private SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +56,14 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler(Looper.getMainLooper());
 
+        // Get saved preferences
+        sharedPrefs = getSharedPreferences("com.jacobmdavidson.computersms", MODE_PRIVATE);
+        editor = getSharedPreferences("com.jacobmdavidson.computersms", MODE_PRIVATE).edit();
+
         // Instantiate and Set the toggle button according to the preferences
         toggle = (ToggleButton) findViewById(R.id.toggleButton);
-        toggle.setChecked(false);
-        toggle.setEnabled(false);
+
+
 
         // Instantiate the EditText object for the IP Address
         serviceDescription = (TextView) findViewById(R.id.textView1);
@@ -64,6 +71,13 @@ public class MainActivity extends AppCompatActivity {
         jmDNSClient = new JmDNSClient();
         jmDNSClient.start();
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        toggle.setChecked(sharedPrefs.getBoolean("isChecked", false));
+        toggle.setEnabled(sharedPrefs.getBoolean("isEnabled", false));
     }
 
     /**
@@ -74,7 +88,8 @@ public class MainActivity extends AppCompatActivity {
     public void onToggleClicked(View view) {
         boolean enabled = ((ToggleButton) view).isChecked();
         if (enabled) {
-
+            editor.putBoolean("isChecked", true);
+            editor.commit();
             Intent startIntent = new Intent(MainActivity.this, ComputerSMSService.class);
             startIntent.setAction(Constants.ACTION.STARTFOREGROUND_ACTION);
             startIntent.putExtra("ip", ipAddress);
@@ -84,6 +99,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         } else {
+            editor.putBoolean("isChecked", false);
+            editor.putBoolean("isEnabled", false);
+            editor.commit();
             serviceDescription.setText("");
             Intent stopIntent = new Intent(MainActivity.this, ComputerSMSService.class);
             stopIntent.setAction(Constants.ACTION.STOPFOREGROUND_ACTION);
@@ -162,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         toggle.setEnabled(true);
+                        editor.putBoolean("isEnabled", true);
+                        editor.commit();
                         serviceDescription.setText(ipAddress);
                     }
                 });

@@ -70,9 +70,6 @@ public class ComputerSMSService extends Service{
             // Connect to the server
             new ConnectToServer().execute("");
 
-
-
-
             // Incoming call, build and send the xml message
         } else if (intent.getAction().equals(Constants.ACTION.INCOMING_CALL_ACTION)) {
             //Log.i(Constants.DEBUGGING.LOG_TAG, "Ringing");
