@@ -50,7 +50,6 @@ public class ComputerSMSService extends Service{
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-
         // Start the foreground service
         if (intent.getAction().equals(Constants.ACTION.STARTFOREGROUND_ACTION)) {
             //Log.i(Constants.DEBUGGING.LOG_TAG, "Start Called");
@@ -192,9 +191,6 @@ public class ComputerSMSService extends Service{
 
             //Log.i(Constants.DEBUGGING.LOG_TAG, values[0]);
         }
-
-
-
 
     }
 }

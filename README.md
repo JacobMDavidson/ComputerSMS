@@ -4,12 +4,13 @@ Using this Android application in conjunction with the [ComputerSMSServer Java A
 
 ## Usage
 
-1. Within the ComputerSMSServer application:
-  * Select *"Start"* and
+1. Ensure both the computer and Android phone are connected to the same local area network.
+2. Within the ComputerSMSServer application:
+  * Select *"Start"*
   * Wait for the message *"Ready to connect"* to be displayed. This will take several seconds.
-2. Wait for the toggle button marked *"Enable"* to be enabled and select it.
-3. The message *"Service started"* should now be displayed on both this application and the Java ComputerSMSServer desktop application.
-4. To send a message from the Java ComputerSMSServer application:
+3. Wait for the toggle button marked *"Enable"* to be enabled and select it.
+4. The message *"Service started"* should now be displayed on both this application and the Java ComputerSMSServer desktop application.
+5. To send a message from the Java ComputerSMSServer application:
   * Enter the 10 digit recipient's number in the *"Phone Number:"* text box.
   * Enter the message in the *"Message:"* text box.
   * Select the *"Send"* button.
