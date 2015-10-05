@@ -23,7 +23,7 @@ import java.io.StringWriter;
 /**
  * Created by jacobdavidson
  */
-public class ComputerSMSService extends Service{
+public class ComputerSMSService extends Service {
 
 
     private ComputerSMSReceiver receiver;
@@ -89,7 +89,7 @@ public class ComputerSMSService extends Service{
                 xs.endTag(null, "body");
                 xs.endTag(null, "smsMessage");
                 xs.endDocument();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
             }
             //Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
@@ -116,7 +116,7 @@ public class ComputerSMSService extends Service{
                 xs.endTag(null, "body");
                 xs.endTag(null, "smsMessage");
                 xs.endDocument();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 Log.i(Constants.DEBUGGING.LOG_TAG, e.toString());
             }
             //Log.i(Constants.DEBUGGING.LOG_TAG, sw.toString());
@@ -160,7 +160,7 @@ public class ComputerSMSService extends Service{
                 public void messageReceived(String message) {
 
                     // If encypted connection, decrypt the message
-                    if( diffieHellmanModule.isConnected()) {
+                    if (diffieHellmanModule.isConnected()) {
                         message = diffieHellmanModule.decryptString(message);
                     }
                     //this method calls the onProgressUpdate

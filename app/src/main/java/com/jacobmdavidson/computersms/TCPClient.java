@@ -25,12 +25,11 @@ public class TCPClient {
     private OnMessageReceived mMessageListener = null;
     private boolean mRun = false;
     private DiffieHellmanModule diffieHellmanModule;
-
     PrintWriter out;
     BufferedReader in;
 
     /**
-     *  Constructor of the class. OnMessagedReceived listens for the messages received from server
+     * Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
     public TCPClient(OnMessageReceived listener, String computerIP, int port, DiffieHellmanModule diffieHellmanModule) {
         mMessageListener = listener;
@@ -38,14 +37,14 @@ public class TCPClient {
         this.port = port;
         this.diffieHellmanModule = diffieHellmanModule;
     }
+
     /**
      * Sends the message entered by client to the server
+     *
      * @param message text entered by client
      */
-    public void sendMessage(String message){
-
+    public void sendMessage(String message) {
         if (out != null && !out.checkError()) {
-
             // If encryption connection has been made
             if (diffieHellmanModule.isConnected()) {
                 message = diffieHellmanModule.encryptString(message);
@@ -55,7 +54,7 @@ public class TCPClient {
         }
     }
 
-    public void stopClient(){
+    public void stopClient() {
         mRun = false;
     }
 
@@ -114,26 +113,15 @@ public class TCPClient {
                         mMessageListener.messageReceived(serverMessage);
                     }
                     serverMessage = null;
-
                 }
-
-
             } catch (Exception e) {
-
                 Log.i(Constants.DEBUGGING.LOG_TAG, "Communication Error", e);
-
             }
-
         } catch (Exception e) {
-
             Log.i(Constants.DEBUGGING.LOG_TAG, "Server connection error", e);
-
         }
 
     }
-
-
-
 
     //Declare the interface. The method messageReceived(String message) will must be implemented in the MyActivity
     //class at on asynckTask doInBackground

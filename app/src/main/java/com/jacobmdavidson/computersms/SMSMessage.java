@@ -10,12 +10,15 @@ public class SMSMessage {
     public String getNumber() {
         return number;
     }
+
     public String getBody() {
         return body;
     }
+
     public void setNumber(String number) {
         this.number = number;
     }
+
     public void setBody(String body) {
         this.body = body;
     }

@@ -13,9 +13,11 @@ import java.io.InputStream;
 public class XMLPullParserHandler {
     private SMSMessage smsMessage;
     private String text;
-    public XMLPullParserHandler(){
+
+    public XMLPullParserHandler() {
 
     }
+
     public SMSMessage parse(InputStream is) {
         XmlPullParserFactory factory;
         XmlPullParser parser;

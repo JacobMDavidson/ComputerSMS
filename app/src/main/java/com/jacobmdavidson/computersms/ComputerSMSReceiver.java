@@ -11,13 +11,13 @@ import android.util.Log;
 /**
  * Created by jacobdavidson on 8/6/15
  */
-public class ComputerSMSReceiver extends BroadcastReceiver{
+public class ComputerSMSReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
         // SMS message is received
-        if(action.equals(Constants.MESSAGE.SMS_RECEIVED)) {
+        if (action.equals(Constants.MESSAGE.SMS_RECEIVED)) {
             Bundle extras = intent.getExtras();
             if (extras != null) {
 
@@ -42,9 +42,7 @@ public class ComputerSMSReceiver extends BroadcastReceiver{
                 }
             }
 
-
-
-            // Phone call is received
+        // Phone call is received
         } else if (action.equals(Constants.MESSAGE.CALL)) {
 
             Bundle extras = intent.getExtras();

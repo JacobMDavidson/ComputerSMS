@@ -63,8 +63,6 @@ public class MainActivity extends AppCompatActivity {
         // Instantiate and Set the toggle button according to the preferences
         toggle = (ToggleButton) findViewById(R.id.toggleButton);
 
-
-
         // Instantiate the EditText object for the IP Address
         serviceDescription = (TextView) findViewById(R.id.textView1);
 
@@ -96,8 +94,6 @@ public class MainActivity extends AppCompatActivity {
             startIntent.putExtra("port", portNumber);
             startService(startIntent);
             serviceDescription.setText("Service Started!");
-
-
         } else {
             editor.putBoolean("isChecked", false);
             editor.putBoolean("isEnabled", false);
@@ -111,8 +107,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private class JmDNSClient extends Thread {
-
-
         @Override
         public void run() {
             super.run();
@@ -141,15 +135,11 @@ public class MainActivity extends AppCompatActivity {
         private class SampleListener implements ServiceListener {
             @Override
             public void serviceAdded(ServiceEvent event) {
-
                 //Log.i(Constants.DEBUGGING.LOG_TAG, "serviceAdded");
                 ServiceInfo info = jmdns.getServiceInfo(SERVICE_TYPE, event.getName());
                 if (info.getName().equals("ComputerSMS")) {
-
                     //Log.i(Constants.DEBUGGING.LOG_TAG, "updating");
                     startService(info);
-
-
                 }
 
             }
@@ -164,11 +154,8 @@ public class MainActivity extends AppCompatActivity {
                 //Log.i(Constants.DEBUGGING.LOG_TAG, "serviceResolved");
                 ServiceInfo info = event.getInfo();
                 if (info.getName().equals("ComputerSMS")) {
-
                     //Log.i(Constants.DEBUGGING.LOG_TAG, "Updating");
                     startService(info);
-
-
                 }
             }
 
